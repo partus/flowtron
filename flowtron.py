@@ -71,7 +71,7 @@ class FlowtronLoss(torch.nn.Module):
         z, log_s_list, gate_pred, mean, log_var, prob = model_output
 
         # create mask for outputs computed on padded data
-        mask = get_mask_from_lengths(lengths).transpose(0, 1)[..., None]        
+        mask = get_mask_from_lengths(lengths).transpose(0, 1)[..., None]
         mask = mask.float()
         n_mel_dims = z.size(2)
         n_elements = mask.sum()
@@ -705,7 +705,7 @@ class Flowtron(torch.nn.Module):
         return mel, log_s_list, gate, attns_list, mean, log_var, prob
 
     def infer(self, residual, speaker_ids, text, temperature=1.0,
-              gate_threshold=0.5, attns=None, attn_prior=None):
+              gate_threshold=0.5, attns=None, attn_prior=None,speaker_vecs=None):
         """Inference function. Inverse of the forward pass
 
         Args:
@@ -717,9 +717,9 @@ class Flowtron(torch.nn.Module):
             residual: input residual after flow transformation. Technically the mel spectrogram values
             attention_weights: attention weights predicted by each flow step for mel-text alignment
         """
-
-        speaker_ids = speaker_ids*0 if self.dummy_speaker_embedding else speaker_ids
-        speaker_vecs = self.speaker_embedding(speaker_ids)
+        if speaker_vecs is None:
+            speaker_ids = speaker_ids*0 if self.dummy_speaker_embedding else speaker_ids
+            speaker_vecs = self.speaker_embedding(speaker_ids)
         text = self.embedding(text).transpose(1, 2)
         text = self.encoder.infer(text)
         text = text.transpose(0, 1)
